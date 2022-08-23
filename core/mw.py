@@ -7,15 +7,9 @@ from fastapi import Request
 from core.utils import random_str
 
 
-class BaseMiddleware:
-    """
-    Middleware
-    """
-
-    def __init__(
-            self,
-            app: ASGIApp,
-    ) -> None:
+class BaseMW:
+    """基础 MiddleWare"""
+    def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:

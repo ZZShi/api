@@ -2,20 +2,25 @@ import os
 from typing import List
 
 from pydantic import BaseSettings
-from dotenv import load_dotenv, find_dotenv
 
 
-class Config(BaseSettings):
-    # 加载环境变量
-    load_dotenv(find_dotenv(), override=True)
+class Settings(BaseSettings):
+    # 加载环境变量，环境变量配置之后可以直接加载
+    MYSQL_HOST: str
+    MYSQL_PORT: int
+    MYSQL_DB: str
+    MYSQL_USER: str
+    MYSQL_PWD: str
     # 调试模式
     APP_DEBUG: bool = True
     # 项目信息
     VERSION: str = "0.0.1"
     PROJECT_NAME: str = "fasdapi"
     DESCRIPTION: str = '<a href="/redoc" target="_blank">redoc</a>'
+    # 主目录
+    BASE_DIR: str = os.getcwd()
     # 静态资源目录
-    STATIC_DIR: str = os.path.join(os.getcwd(), "static")
+    STATIC_DIR: str = os.path.join(BASE_DIR, "static")
     TEMPLATE_DIR: str = os.path.join(STATIC_DIR, "templates")
     # 跨域请求
     CORS_ORIGINS: List = ["*"]
@@ -37,4 +42,4 @@ class Config(BaseSettings):
     QRCODE_EXPIRE = 60 * 1
 
 
-settings = Config()
+settings = Settings()

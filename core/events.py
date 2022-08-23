@@ -1,15 +1,10 @@
-# -*- coding:utf-8 -*-
-"""
-@Created on : 2022/4/22 22:02
-@Author: binkuolo
-@Des: fastapi事件监听
-"""
-
 from typing import Callable
+
 from fastapi import FastAPI
-# from database.mysql import register_mysql
-# from database.redis import sys_cache, code_cache
-# from aioredis import Redis
+from aioredis import Redis
+
+from database.mysql import register_mysql
+from database.redis import sys_cache, code_cache
 
 
 def startup(app: FastAPI) -> Callable:
@@ -22,10 +17,10 @@ def startup(app: FastAPI) -> Callable:
         # APP启动完成后触发
         print("fastapi已启动")
         # 注册数据库
-        # await register_mysql(app)
+        await register_mysql(app)
         # # 注入缓存到app state
-        # app.state.cache = await sys_cache()
-        # app.state.code_cache = await code_cache()
+        app.state.cache = await sys_cache()
+        app.state.code_cache = await code_cache()
     return app_start
 
 
@@ -38,8 +33,8 @@ def shutdown(app: FastAPI) -> Callable:
     async def app_stop() -> None:
         # APP停止时触发
         print("fastapi已停止")
-        # cache: Redis = await app.state.cache
-        # code: Redis = await app.state.code_cache
-        # await cache.close()
-        # await code.close()
+        cache: Redis = await app.state.cache
+        code: Redis = await app.state.code_cache
+        await cache.close()
+        await code.close()
     return app_stop

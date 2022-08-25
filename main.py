@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from config import settings
-from core.events import startup, shutdown
+from common.events import startup, shutdown
 from api import ut
 
 app = FastAPI(

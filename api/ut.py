@@ -1,19 +1,19 @@
 from fastapi import APIRouter
 
 from models.base import Event
-from core.resp import RespSucc
+from common.resp import RespSucc, RespPage
 from schemas.event import CreateEvent
 
 app = APIRouter(prefix="/ut")
 
 
-@app.get("/task")
+@app.get("/task", response_model=RespSucc[CreateEvent])
 async def get_tasks(name: str):
     data = await Event.filter(name=name).limit(3).offset(2)
-    return RespSucc(data=data)
+    return RespPage[CreateEvent](data=data)
 
 
-@app.post("/task")
+@app.post("/task", response_model=RespSucc[CreateEvent])
 async def create_task(info: CreateEvent):
     data = await Event.create(**info.dict())
     return RespSucc(data=data)

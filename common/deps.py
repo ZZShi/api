@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Optional, Dict
 
 from fastapi import Query
@@ -11,7 +12,7 @@ class Pager:
         self.max_size = max_size
         self.page: int = 1
         self.size: int = 10
-        self.prder: List[str] = ["-id"]
+        self.order: List[str] = ["-id"]
 
     @property
     def limit(self):
@@ -33,6 +34,8 @@ class Pager:
 
     async def output(self, queryset: QuerySet, filters: Optional[Dict] = None):
         filters = filters if filters else {}
-        items = await ...
-        total = ...
+        total, items = await asyncio.gather(
+            queryset.filter(**filters).count(),
+            queryset.filter(**filters).limit(self.limit).offset(self.offset).order_by(*self.order),
+        )
         return PageData(items=items, total=total)

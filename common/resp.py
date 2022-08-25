@@ -1,10 +1,28 @@
-from typing import TypeVar, Optional, Generic, List
+from datetime import datetime
+from typing import TypeVar, Optional, Generic, List, Type
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 from pydantic.generics import GenericModel
+from tortoise.queryset import QuerySet
 
 
 _T = TypeVar("_T")  # 响应的数据
+_Model = TypeVar('_Model', bound='BaseModel')
+
+
+class ORMModel(BaseModel):
+    """ 带orm的pydantic模型 """
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name = True
+
+    @classmethod
+    async def from_queryset(cls: Type['_Model'], qs: QuerySet) -> List["_Model"]:
+        return [cls.from_orm(x) for x in await qs]
 
 
 class ResponseModel(GenericModel):

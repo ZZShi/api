@@ -16,6 +16,7 @@ class Event(TimestampMixin):
     age = fields.IntField()
 
     class Meta:
+        ordering = ["-id"]
         table = "event"
 
     def __str__(self):

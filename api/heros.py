@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 
 from common.deps import Pager
-from database.db import get_session
+from db_fast.db import get_session
 from common.resp import RespSingle, RespMulti
 from db_fast.heros import Heros, HerosCreate, HerosUpdate, heros_filters
 

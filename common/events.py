@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from aioredis import Redis
 
 from common.logger import log
-from database.mysql import register_mysql
+from database.mysql import register_mysql, close_connection
 from database.redis import sys_cache, code_cache
 
 
@@ -16,7 +16,7 @@ def startup(app: FastAPI) -> Callable:
     """
     async def app_start() -> None:
         # APP启动完成后触发
-        log.info("fastapi已启动")
+        log.info("启动 FastApi")
         # 注册数据库
         await register_mysql(app)
         # # 注入缓存到app state
@@ -33,7 +33,10 @@ def shutdown(app: FastAPI) -> Callable:
     """
     async def app_stop() -> None:
         # APP停止时触发
-        log.info("fastapi已停止")
+        log.info("停止 FastApi")
+        # 断开数据库
+        await close_connection()
+        # 断开 Redis
         cache: Redis = await app.state.cache
         code: Redis = await app.state.code_cache
         await cache.close()

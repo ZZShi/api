@@ -1,26 +1,6 @@
 from tortoise import fields
-from tortoise.models import Model
 
-
-class TimestampMixin(Model):
-    id = fields.IntField(pk=True)
-    created_at = fields.DatetimeField(auto_now_add=True, description='创建时间')
-    updated_at = fields.DatetimeField(auto_now=True, description="更新时间")
-
-    class Meta:
-        abstract = True
-
-
-class Events(TimestampMixin):
-    name = fields.TextField()
-    age = fields.IntField()
-
-    class Meta:
-        ordering = ["-id"]
-        table = "events"
-
-    def __str__(self):
-        return self.name
+from models.base import TimestampMixin
 
 
 class UtTasks(TimestampMixin):
@@ -41,7 +21,7 @@ class UtTasks(TimestampMixin):
         ordering = ["-id"]
         table_description = "自动化任务"
         table = "ut_tasks"
-
+        
     def __str__(self):
         return self.task_name
 
@@ -89,8 +69,7 @@ class UtOverviews(TimestampMixin):
     skipped = fields.IntField(null=True, description="跳过")
     passed = fields.IntField(null=True, description="通过")
     unknown = fields.IntField(null=True, description="未知原因")
-    # order = fields.ForeignKeyField("models.base.UtHistories", related_name="id")
-    order = fields.IntField(null=True, description="历史报告 ID")
+    order = fields.ForeignKeyField("ut.UtHistory", related_name="id")
 
     class Meta:
         ordering = ['-id']
@@ -117,8 +96,7 @@ class UtDetails(TimestampMixin):
     failed_reason = fields.TextField(null=True, description="失败原因")
     developer = fields.CharField(null=True, max_length=48, description="开发同学邮箱")
     test_developer = fields.CharField(null=True, max_length=48, description="测试同学邮箱")
-    # order = fields.ForeignKeyField("ut.UtHistory", related_name="id")
-    order = fields.IntField(null=True, description="历史报告 ID")
+    order = fields.ForeignKeyField("ut.UtHistory", related_name="id")
     case_url = fields.CharField(null=True, max_length=128, description="用例链接")
 
     class Meta:

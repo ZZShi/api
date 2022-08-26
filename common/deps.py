@@ -24,16 +24,6 @@ class Pager:
     def offset(self):
         return self.size * (self.page - 1)
 
-    # def __call__(self,
-    #              page: int = Query(1, description="页码"),
-    #              size: int = Query(10, description="数量"),
-    #              order: List[str] = Query(["-id"], description="按指定字段排序，格式：id 或 -created_at")
-    #              ):
-    #     self.page = max(page, 1)
-    #     self.size = max(size, 100)
-    #     self.order = order
-    #     return self
-
     async def output(self, queryset: QuerySet, filters: Optional[Dict] = None):
         filters = filters if filters else {}
         total, items = await asyncio.gather(

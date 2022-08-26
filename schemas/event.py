@@ -1,5 +1,4 @@
-from typing import Optional
-
+from fastapi import Query
 from pydantic import BaseModel
 
 from common.resp import ORMModel
@@ -18,7 +17,7 @@ class EventInfo(ORMModel):
     age: int
 
 
-def event_filter(name: Optional[str] = None, age: Optional[int] = None):
+def event_filter(name: str = Query(None), age: str = Query(None)):
     query = {}
     if name:
         query.setdefault("name__icontains", name)

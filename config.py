@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     MYSQL_DB: str
     MYSQL_USER: str
     MYSQL_PWD: str
+    # Redis 信息
+    REDIS_HOST: str = "127.0.0.1"
+    REDIS_PORT: int = 26379
     # 调试模式
     APP_DEBUG: bool = True
     # 项目信息

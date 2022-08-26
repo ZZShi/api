@@ -1,11 +1,11 @@
 from typing import Callable
 
-from fastapi import FastAPI
 from aioredis import Redis
+from fastapi import FastAPI
 
 from common.logger import log
-from database.mysql import register_mysql, close_connection
-from database.redis import sys_cache, code_cache
+from db.redis import cache, cache_code
+from db.mysql import register_mysql, close_connection
 
 
 def startup(app: FastAPI) -> Callable:
@@ -20,8 +20,8 @@ def startup(app: FastAPI) -> Callable:
         # 注册数据库
         await register_mysql(app)
         # # 注入缓存到app state
-        app.state.cache = await sys_cache()
-        app.state.code_cache = await code_cache()
+        app.state.cache = await cache()
+        app.state.cache_code = await cache_code()
     return app_start
 
 
@@ -37,8 +37,10 @@ def shutdown(app: FastAPI) -> Callable:
         # 断开数据库
         await close_connection()
         # 断开 Redis
-        cache: Redis = await app.state.cache
-        code: Redis = await app.state.code_cache
-        await cache.close()
-        await code.close()
+        await app.state.cache.close()
+        await app.state.cache_code.close()
+        # cache: Redis = await app.state.cache
+        # code: Redis = await app.state.cache_code
+        # await cache.close()
+        # await code.close()
     return app_stop

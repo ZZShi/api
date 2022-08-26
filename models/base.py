@@ -8,15 +8,16 @@ class TimestampMixin(Model):
     updated_at = fields.DatetimeField(auto_now=True, description="更新时间")
 
     class Meta:
+        ordering = ["-id"]
         abstract = True
 
 
 class Events(TimestampMixin):
     name = fields.TextField()
     age = fields.IntField()
+    x = fields.TextField()
 
     class Meta:
-        ordering = ["-id"]
         table = "events"
 
     def __str__(self):
@@ -38,7 +39,6 @@ class UtTasks(TimestampMixin):
     group = fields.CharField(null=True, max_length=32, description='分组方式')
 
     class Meta:
-        ordering = ["-id"]
         table_description = "自动化任务"
         table = "ut_tasks"
 
@@ -70,7 +70,6 @@ class UtHistories(TimestampMixin):
     total = fields.IntField(null=True, default=0, description="总数")
 
     class Meta:
-        ordering = ['-id']
         table = "ut_histories"
 
     def __str__(self):
@@ -93,7 +92,6 @@ class UtOverviews(TimestampMixin):
     order = fields.IntField(null=True, description="历史报告 ID")
 
     class Meta:
-        ordering = ['-id']
         table = "ut_overviews"
 
     def __str__(self):
@@ -112,7 +110,7 @@ class UtDetails(TimestampMixin):
     status = fields.CharField(null=True, max_length=32, description="状态")
     start_time = fields.DatetimeField(null=True, default=0, description="开始时间")
     stop_time = fields.DatetimeField(null=True, default=0, description="结束时间")
-    duration = fields.FloatField(null=True, max_length=128, description="耗时")
+    duration = fields.CharField(null=True, max_length=128, description="耗时")
     parameters = fields.TextField(null=True, description="参数")
     failed_reason = fields.TextField(null=True, description="失败原因")
     developer = fields.CharField(null=True, max_length=48, description="开发同学邮箱")
@@ -122,7 +120,6 @@ class UtDetails(TimestampMixin):
     case_url = fields.CharField(null=True, max_length=128, description="用例链接")
 
     class Meta:
-        ordering = ['-id']
         table = "ut_details"
 
     def __str__(self):

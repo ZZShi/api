@@ -27,14 +27,17 @@ def check_password(password: str) -> str:
 
 
 # -------------------------------  请求部分  ---------------------------------------------
-class UserRegister(BaseModel):
-    username: str = Field(..., min_length=4, max_length=20, description='用户名', example="这里输入用户名")
-    password: str = Field(..., min_length=8, max_length=20, description='密码')
-    password2: str = Field(..., min_length=8, max_length=20, description='密码2')
+class UserLogin(BaseModel):
+    username: str = Field(..., min_length=3, max_length=20, description='用户名')
+    password: str = Field(..., min_length=6, max_length=20, description='密码')
     code: str = Field(..., min_length=4, max_length=4, description='验证码')
 
     _check_username = validator("username", allow_reuse=True)(check_username)
     _check_password = validator("password", allow_reuse=True)(check_password)
+
+
+class UserRegister(UserLogin):
+    password2: str = Field(..., min_length=6, max_length=20, description='密码2')
 
     @validator('password2')
     def passwords_match(cls, value, values, ):
@@ -43,19 +46,10 @@ class UserRegister(BaseModel):
         return value
 
 
-class UserLogin(BaseModel):
-    username: str = Field(..., min_length=4, max_length=20, description='用户名')
-    password: str = Field(..., min_length=8, max_length=20, description='密码')
-    code: str = Field(..., min_length=4, max_length=4, description='验证码')
-
-    _check_username = validator("username", allow_reuse=True)(check_username)
-    _check_password = validator("password", allow_reuse=True)(check_password)
-
-
 class ModifyPassword(BaseModel):
-    old_password: str = Field(..., min_length=8, max_length=20, description='旧密码')
-    new_password: str = Field(..., min_length=8, max_length=20, description='新密码')
-    new_password2: str = Field(..., min_length=8, max_length=20, description='新密码2')
+    old_password: str = Field(..., min_length=6, max_length=20, description='旧密码')
+    new_password: str = Field(..., min_length=6, max_length=20, description='新密码')
+    new_password2: str = Field(..., min_length=6, max_length=20, description='新密码2')
 
     _check_password = validator("*", allow_reuse=True)(check_password)
 

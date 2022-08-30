@@ -4,6 +4,7 @@ from fastapi import Request
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Receive, Scope, Send, Message
 
+from config import settings
 from common.logger import log
 from common.utils import random_str
 
@@ -41,11 +42,11 @@ class LogMW:
             await self.app(scope, receive, send)
             return
 
-        # scope_path = scope['path']
-        # api_path = scope['path'].replace(settings.url_prefix, '')
-        # if (not scope_path.startswith(settings.url_prefix)) or (api_path in settings.logger_path_white_list):
-        #     await self.app(scope, receive, send)
-        #     return
+        scope_path = scope['path']
+        api_path = scope['path'].replace(settings.url_prefix, '')
+        if (not scope_path.startswith(settings.url_prefix)) or (api_path in settings.logger_path_white_list):
+            await self.app(scope, receive, send)
+            return
 
         receive_ = await receive()
 

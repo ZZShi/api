@@ -9,7 +9,8 @@ from common.exception import register_exceptions
 from api import v1
 
 app = FastAPI(
-    debug=settings.debug
+    debug=settings.debug,
+    swagger_ui_oauth2_redirect_url=settings.swagger_ui_oauth2_redirect_url
 )
 
 # 注册异常处理

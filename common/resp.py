@@ -12,9 +12,9 @@ _Model = TypeVar('_Model', bound='BaseModel')
 
 class ORMModel(BaseModel):
     """ 带orm的pydantic模型 """
-    id: int
-    created_at: datetime
-    updated_at: datetime
+    # id: int
+    # created_at: datetime
+    # updated_at: datetime
 
     class Config:
         orm_mode = True

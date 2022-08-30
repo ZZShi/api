@@ -12,3 +12,4 @@ aerich
 python-jose
 python-dotenv
 simpel_captcha
+python-multipart

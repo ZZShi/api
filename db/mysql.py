@@ -3,13 +3,18 @@ from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 
 from common.logger import log
-from config import settings
 
 
 # -----------------------数据库配置-----------------------------------
 DB_ORM_CONFIG = {
     "connections": {
         "base": {
+            'engine': 'tortoise.backends.sqlite',
+            "credentials": {
+                'file_path': "db.sqlite"
+            }
+        },
+        "user": {
             'engine': 'tortoise.backends.sqlite',
             "credentials": {
                 'file_path': "db.sqlite"
@@ -27,7 +32,8 @@ DB_ORM_CONFIG = {
         # }
     },
     "apps": {
-        "base": {"models": ["aerich.models", "models.base"], "default_connection": "base"}
+        "base": {"models": ["aerich.models", "models.base"], "default_connection": "base"},
+        "user": {"models": ["models.user"], "default_connection": "user"}
     },
     'use_tz': False,
     'timezone': 'Asia/Shanghai'

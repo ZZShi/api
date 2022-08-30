@@ -1,108 +1,115 @@
-# -*- coding:utf-8 -*-
-"""
-@Time : 2022/4/27 5:29 PM
-@Author: binkuolo
-@Des: schemas模型
-"""
-from datetime import datetime
-from pydantic import Field, BaseModel, validator
-from typing import Optional, List
-from schemas.base import BaseResp, ResAntTable
+import re
+from typing import Optional
+
+from pydantic import BaseModel, Field, validator
 
 
-class CreateUser(BaseModel):
-    username: str = Field(min_length=3, max_length=10)
-    password: str = Field(min_length=6, max_length=12)
-    user_phone: Optional[str] = Field(regex="^1[34567890]\\d{9}$")
-    user_status: Optional[bool]
-    remarks: Optional[str]
-    roles: Optional[List[int]]
+# -------------------------------  检验函数  ---------------------------------------------
+from common.resp import ORMModel
+from schemas.enums.model import UserGender
+from schemas.role import RoleInfoForLoginResp
 
 
-class UpdateUser(BaseModel):
-    id: int
-    username: Optional[str] = Field(min_length=3, max_length=10)
-    password: Optional[str] = Field(min_length=6, max_length=12)
-    user_phone: Optional[str] = Field(regex="^1[34567890]\\d{9}$")
-    user_status: Optional[bool]
-    remarks: Optional[str]
+def check_username(username: str) -> str:
+    if ' ' in username:
+        raise ValueError('用户名不能包含空格')
+    if not username.isalnum():
+        raise ValueError('用户名只能由字母和数字组成')
+    if re.match(r'^\d', username):
+        raise ValueError('用户名不能以数字开头')
+    return username
 
 
-class SetRole(BaseModel):
-    user_id: int
-    roles: Optional[List[int]] = Field(default=[], description="角色")
+def check_password(password: str) -> str:
+    if re.match(r'^\d+$', password):
+        raise ValueError("不能使用纯数字的密码")
+    return password
 
 
-class AccountLogin(BaseModel):
-    username: Optional[str] = Field(min_length=3, max_length=10, description="用户名")
-    password: Optional[str] = Field(min_length=6, max_length=12, description="密码")
-    mobile: Optional[str] = Field(regex="^1[34567890]\\d{9}$", description="手机号")
-    captcha: Optional[str] = Field(min_length=6, max_length=6, description="6位验证码")
+# -------------------------------  请求部分  ---------------------------------------------
+class UserRegister(BaseModel):
+    username: str = Field(..., min_length=4, max_length=20, description='用户名', example="这里输入用户名")
+    password: str = Field(..., min_length=8, max_length=20, description='密码')
+    password2: str = Field(..., min_length=8, max_length=20, description='密码2')
+    code: str = Field(..., min_length=4, max_length=4, description='验证码')
+
+    _check_username = validator("username", allow_reuse=True)(check_username)
+    _check_password = validator("password", allow_reuse=True)(check_password)
+
+    @validator('password2')
+    def passwords_match(cls, value, values, ):
+        if 'password' in values and value != values['password']:
+            raise ValueError('两次输入的密码不匹配')
+        return value
 
 
-class ModifyMobile(BaseModel):
-    mobile: str = Field(regex="^1[34567890]\\d{9}$", description="手机号")
-    captcha: str = Field(min_length=6, max_length=6, description="6位验证码")
+class UserLogin(BaseModel):
+    username: str = Field(..., min_length=4, max_length=20, description='用户名')
+    password: str = Field(..., min_length=8, max_length=20, description='密码')
+    code: str = Field(..., min_length=4, max_length=4, description='验证码')
+
+    _check_username = validator("username", allow_reuse=True)(check_username)
+    _check_password = validator("password", allow_reuse=True)(check_password)
 
 
-class UserInfo(BaseModel):
-    username: str
-    age: Optional[int]
-    user_type: bool
-    nickname: Optional[str]
-    user_phone: Optional[str]
-    user_email: Optional[str]
-    full_name: Optional[str]
-    scopes: Optional[List[str]]
-    user_status: bool
-    header_img: Optional[str]
-    sex: int
+class ModifyPassword(BaseModel):
+    old_password: str = Field(..., min_length=8, max_length=20, description='旧密码')
+    new_password: str = Field(..., min_length=8, max_length=20, description='新密码')
+    new_password2: str = Field(..., min_length=8, max_length=20, description='新密码2')
+
+    _check_password = validator("*", allow_reuse=True)(check_password)
+
+    @validator('new_password2')
+    def passwords_match(cls, value, values, ):
+        if 'new_password' in values and value != values['new_password']:
+            raise ValueError('两次输入的密码不匹配')
+        return value
 
 
-class UserListItem(BaseModel):
-    key: int
-    id: int
-    username: str
-    age: Optional[int]
-    user_type: bool
-    nickname: Optional[str]
-    user_phone: Optional[str]
-    user_email: Optional[str]
-    full_name: Optional[str]
-    user_status: bool
-    header_img: Optional[str]
-    sex: int
-    remarks: Optional[str]
-    create_time: datetime
-    update_time: datetime
-
-
-class CurrentUser(BaseResp):
-    data: UserInfo
-
-
-class AccessToken(BaseModel):
-    token: Optional[str]
-    expires_in: Optional[int]
-
-
-class UserLogin(BaseResp):
-    data: AccessToken
-
-
-class UserListData(ResAntTable):
-    data: List[UserListItem]
-
-
-class UpdateUserInfo(BaseModel):
-    nickname: Optional[str]
-    user_email: Optional[str]
-    header_img: Optional[str]
-    user_phone: Optional[str] = Field(regex="^1[34567890]\\d{9}$", description="手机号")
-    password: Optional[str] = Field(min_length=6, max_length=12, description="密码")
+# ModifyInfo = pydantic_model_creator(User, name='ModifyInfo', include=('nickname', 'full_name', 'gender'))
+# 自动生成的模型，不支持枚举
+class ModifyInfo(BaseModel):
+    nickname: str | None = None
+    full_name: str | None = None
+    gender: UserGender = UserGender.unknown
 
     @validator('*')
     def blank_strings(cls, v):
-        if v == "":
-            return None
-        return v
+        return None if v == "" else v
+
+
+# -------------------------------  响应部分  ---------------------------------------------
+
+class Token(ORMModel):
+    access_token: str = Field(..., alias='accessToken')
+    token_type: str = Field(..., alias='tokenType')
+
+
+class UserInfo(ORMModel):
+    """ 用户信息 """
+    id: int = Field(..., alias='userId', description='用户ID')
+    username: str = Field(..., alias='username', description='用户名')
+    # nickname: Optional[str]
+    # email: Optional[EmailStr]
+    full_name: Optional[str] = Field(None, alias='realName', description="真实姓名")
+    # is_superuser: bool = Field(..., alias='isSuperuser')
+    # is_active: bool = Field(..., alias='isActive')
+    head_img: Optional[str] = Field(None, alias='avatar', description="头像")
+    # gender: UserGender
+    # remarks: Optional[str]
+    # phone_number: Optional[str] = Field(None, alias='phoneNumber')
+    # create_time: datetime = Field(None, alias='createTime')
+    # update_time: datetime = Field(None, alias='updateTime')
+    remarks: Optional[str] = Field(None, alias='desc', description="介绍")
+
+
+class LoginResult(ORMModel):
+    """ 响应登陆 """
+    id: int = Field(..., gt=0, alias='userId', description='用户ID')
+    token: str
+    role: RoleInfoForLoginResp
+
+
+class UserInfoToken(UserInfo):
+    """ 用户信息 + Token"""
+    token: Token

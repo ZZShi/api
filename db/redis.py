@@ -1,40 +1,26 @@
-# -*- coding:utf-8 -*-
-"""
-@Time : 2022/4/25 2:09 PM
-@Author: binkuolo
-@Des: redis
-"""
+from functools import lru_cache
 
 import aioredis
-import os
 from aioredis import Redis
+from fastapi import Depends, Request
+
+from config import settings
 
 
-async def cache() -> Redis:
-    """
-    系统缓存
-    :return: cache 连接池
-    """
-    # 从URL方式创建redis连接池
-    sys_cache_pool = aioredis.ConnectionPool.from_url(
-        f"redis://{os.getenv('CACHE_HOST', '127.0.0.1')}:{os.getenv('CACHE_PORT', 26379)}",
-        db=os.getenv('CACHE_DB', 0),
-        encoding='utf-8',
-        decode_responses=True
-    )
-    return Redis(connection_pool=sys_cache_pool)
+@lru_cache()
+def get_redis() -> Redis:
+    redis = aioredis.from_url(settings.cache_redis_url, encoding='utf-8', decode_responses=True)
+    return redis
 
 
-async def cache_code() -> Redis:
-    """
-    系统缓存
-    :return: cache 连接池
-    """
-    # 从URL方式创建redis连接池
-    sys_cache_pool = aioredis.ConnectionPool.from_url(
-        f"redis://{os.getenv('CACHE_HOST', '127.0.0.1')}:{os.getenv('CACHE_PORT', 26379)}",
-        db=os.getenv('CACHE_DB', 1),
-        encoding='utf-8',
-        decode_responses=True
-    )
-    return Redis(connection_pool=sys_cache_pool)
+def get_session_value(req: Request):
+    return req.session.get(settings.session_cookie_name)
+
+
+async def get_captcha_code(session_value: str = Depends(get_session_value),
+                           redis: Redis = Depends(get_redis)):
+    if session_value is None:
+        return
+    key = settings.captcha_key.format(session_value)
+    code_in_redis = await redis.get(key)
+    return code_in_redis
